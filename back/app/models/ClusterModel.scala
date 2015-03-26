@@ -48,10 +48,8 @@ object Cluster extends utils.Flyweight {
   def create(_1: User, _2: DateTime, _3: Seq[Snapshot], _4: String): Cluster =
     create(Cluster(0, _1, _2, _3, _4))
 
-  protected def insert(cluster: Cluster) = {
-    val newId =  DB.withSession { implicit session =>
-        (Table returning Table.map(_.id)) += cluster
-    }
+  protected def insert(cluster: Cluster)(implicit session: Session) = {
+    val newId = (Table returning Table.map(_.id)) += cluster
     cluster.copy(id = newId)
   }
 

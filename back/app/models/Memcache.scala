@@ -25,11 +25,8 @@ object Memcache extends Flyweight {
 
   private val Table = TableQuery[MemcacheModel]
 
-  protected def insert(v: MemcacheVal): MemcacheVal = {
-    DB.withSession {
-      implicit session =>
-        Table += v
-    }
+  protected def insert(v: MemcacheVal)(implicit session: Session): MemcacheVal = {
+    Table += v
     v
   }
 

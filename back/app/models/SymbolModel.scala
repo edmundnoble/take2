@@ -43,10 +43,8 @@ object Symbol extends utils.Flyweight {
     create(Symbol(0, _1, _2, _3, _4))
   }
 
-  protected def insert(symbol: Symbol): Symbol = {
-    val newId = DB.withSession { implicit session =>
-      (Table returning Table.map(_.id)) += symbol
-    }
+  protected def insert(symbol: Symbol)(implicit session: Session): Symbol = {
+    val newId = (Table returning Table.map(_.id)) += symbol
     symbol.copy(id = newId)
   }
 

@@ -1,5 +1,6 @@
 package models
 
+import com.github.nscala_time.time.Imports
 import com.github.nscala_time.time.Imports._
 import play.api.data._
 import play.api.data.Forms._
@@ -23,7 +24,7 @@ case class Snapshot(
   lazy val commit = Commit.getById(commitId)
 }
 
-object Snapshot extends utils.Flyweight {
+object Snapshot extends utils.EventualUpdates {
   type T = Snapshot
   type Key = Int
 
@@ -43,10 +44,8 @@ object Snapshot extends utils.Flyweight {
     }
   }
 
-  protected def insert(snap: Snapshot) = {
-    val newId = DB.withSession { implicit session =>
-      (Table returning Table.map(_.id)) += snap
-    }
+  protected def insert(snap: Snapshot)(implicit session: Session) = {
+    val newId = (Table returning Table.map(_.id)) += snap
     snap.copy(id = newId)
   }
 
@@ -81,6 +80,8 @@ object Snapshot extends utils.Flyweight {
   implicit def implSeqSnapshot = MappedColumnType.base[Seq[Snapshot], String](
     ss => ss.map(_.id).mkString(";"),
     s  => s.split(";").filter(_.length != 0).map(Snapshot getById _.toInt).map(_.get))
+
+  override def timeFromCreationToUpdate: Imports.Duration = 30.seconds
 }
 
 class SnapshotModel(tag: Tag) extends Table[Snapshot](tag, "Snapshot") {

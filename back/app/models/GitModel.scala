@@ -66,7 +66,7 @@ trait GitModel extends SourceRepositoryModel {
           revCommit.getName,
           User.getOrCreate(author.getName, author.getEmailAddress),
           branch,
-          revCommit.getParents.map(_.getName).map(Commit.getById _).map(_.get)
+          revCommit.getParents.map(_.getName)
         )
 
       revCommit.getParentCount match {

@@ -27,13 +27,11 @@ object Commit extends utils.Flyweight {
 
   private val Table = TableQuery[CommitModel]
 
-  def create(_1: String, _2: User, _3: String, _4: Seq[Commit]): Commit =
-    create(Commit(_1, _2, _3, _4.map(_.id)))
+  def create(_1: String, _2: User, _3: String, _4: Seq[String]): Commit =
+    create(Commit(_1, _2, _3, _4))
 
-  protected def insert(commit: Commit): Commit = {
-    DB.withSession{ implicit session =>
-      Table += commit
-    }
+  protected def insert(commit: Commit)(implicit session: Session): Commit = {
+    Table += commit
     commit
   }
 

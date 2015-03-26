@@ -40,10 +40,8 @@ object User extends utils.Flyweight {
   def create(_1: String, _2: String): User =
     create(User(0, _1, _2, DateTime.now))
 
-  protected def insert(user: User): User = {
-    val newId = DB.withSession { implicit session =>
-      (Table returning Table.map(_.id)) += user
-    }
+  protected def insert(user: User)(implicit session: Session): User = {
+    val newId = (Table returning Table.map(_.id)) += user
     user.copy(id = newId)
   }
 

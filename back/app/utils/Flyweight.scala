@@ -1,17 +1,21 @@
 package utils
 
 import com.github.nscala_time.time.Imports._
+import play.api.db.slick.DB
+import play.api.db.slick.Config.driver.simple._
+import play.api.Play.current
 
 trait Flyweight {
   type Key
-  type T <: { val id: Key } // scalastyle:ignore
+  type T <: {val id: Key} // scalastyle:ignore
 
   def rawGet(key: Key): Option[T]
-  protected def insert(row: T): T
 
-  private case class Access(obj: T, var lastTouched: DateTime)
+  protected def insert(row: T)(implicit session: Session): T
 
-  private val cached = scala.collection.mutable.Map[Key, Access]()
+  protected case class Access(obj: T, var lastTouched: DateTime)
+
+  protected val cached = scala.collection.mutable.Map[Key, Access]()
 
   def inMemory: Seq[T] = cached.toMap.map(_._2.obj).toSeq
 
@@ -77,11 +81,13 @@ trait Flyweight {
     }
   }
 
-  final def create(row: T): T = {
+  def create(row: T): T = {
     cached.synchronized {
-      val newRow = insert(row)
-      cached += newRow.id -> new Access(newRow, DateTime.now)
-      newRow
+      DB.withSession { implicit session =>
+        val newRow = insert(row)
+        cached += newRow.id -> new Access(newRow, DateTime.now)
+        newRow
+      }
     }
   }
 }
